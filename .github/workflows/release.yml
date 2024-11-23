@@ -1,0 +1,28 @@
+name: Release
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      NODE_VERSION: '20'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Create and Modify Archive
+        run: |
+          REPO_NAME=${GITHUB_REPOSITORY#*/}
+          mkdir -p "$REPO_NAME"
+          cp -r $(ls -A | grep -v '^\.git$\|^'"$REPO_NAME"'$') "$REPO_NAME/"
+          zip -r release.zip "$REPO_NAME"
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release.zip
